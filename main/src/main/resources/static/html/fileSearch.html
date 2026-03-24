@@ -1,0 +1,26 @@
+<div class="header category">
+    <span class="subHeader">
+        File Search
+        <div class="status-indicator" id="statusIndicator" style="display: none;">
+            <span class="status-dot" style="background-color: #ccc;"></span>
+            <span class="status-label" style="color: #ccc;">AI OFF</span>
+        </div>
+    </span>
+</div>
+<div class="search-box">
+    <select id="searchType" class="search-select">
+        <option value="name">파일명</option>
+        <option value="content">내용</option>
+        <option value="semantic">시맨틱 검색</option>
+    </select>
+    <input type="text" id="searchInput" class="search-input" placeholder="검색어를 입력하세요 (예: 보고서, 결산...)"
+        autocomplete="off">
+    <button id="searchBtn" class="search-btn">
+        <i class="fas fa-search" id="searchIcon"></i>
+        <div class="spinner" id="searchSpinner"></div>
+        검색
+    </button>
+</div>
+<div class="results-container" id="resultsContainer">
+    <!-- Results will be injected here via JavaScript -->
+</div>
