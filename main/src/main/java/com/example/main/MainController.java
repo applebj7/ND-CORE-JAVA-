@@ -12,11 +12,19 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.example.main.dto.MemberDTO;
+import com.example.main.mapper.AppMapper;
 import com.example.main.dto.AppDTO;
 
 
 @Controller
 public class MainController {
+
+    private final AppMapper appMapper;
+    
+    public MainController(AppMapper appMapper) {
+        this.appMapper = appMapper;
+    }
+
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -45,9 +53,9 @@ public class MainController {
         System.out.println("**************************");
         System.out.println("/apps");
         System.out.println("**************************");
-        String sql = "SELECT ID, NAME, ICON, COLOR, CREATE_DATE FROM TB_APP ORDER BY IDX ASC";
+        //String sql = "SELECT ID, NAME, ICON, COLOR, CREATE_DATE FROM TB_APP ORDER BY IDX ASC";
 
-        List<AppDTO> apps = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(AppDTO.class));
+        List<AppDTO> apps = appMapper.getApps();
         
         return apps;
     }

@@ -149,6 +149,7 @@ const renderAppGrid = async () => {
                 <div class="app-item" id="btnOpenUsers">
                     <div class="app-icon ${app.color}">
                         <i class="fas ${app.icon}"></i>
+                        <div class="app-badge">DB</div>
                     </div>
                     <div class="app-name" title="${app.name}">${app.name}</div>
                 </div>

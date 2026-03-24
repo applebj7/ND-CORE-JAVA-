@@ -755,3 +755,48 @@ footer {
         opacity: 0.4;
     }
 }
+
+/* 아이콘 사각형 박스 */
+.app-icon {
+    position: relative; /* 뱃지의 기준점을 아이콘 박스로 설정 */
+    /* 중요: 자식 요소(뱃지)가 박스 밖으로 나가도 가려지지 않게 설정 */
+    /* overflow: visible !important; */
+
+    width: 60px;        /* 현재 사용 중인 크기에 맞춰 조절하세요 */
+    height: 60px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 뱃지 스타일 */
+.app-badge {
+    /* 1. 위치 설정 */
+    position: absolute;
+    top: 4px;       /* 안쪽으로 살짝 이동 (가려지지 않게) */
+    right: 10px;    /* 안쪽으로 살짝 이동 (가려지지 않게) */
+    
+    /* 2. 크기 및 모양 */
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: 10px;
+    
+    /* 3. 색상 및 폰트 */
+    background-color: #ff3b30;
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    border: 1.5px solid #1a1c24; /* 아이콘 배경색과 맞춘 선 */
+    
+    /* 4. 정렬 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    /* 5. 중요: 가려짐 방지 필살기 */
+    z-index: 9999;
+    /* 만약 여전히 살짝 가려진다면 아래 수치를 조절하세요 */
+    transform: translate(25%, -25%);
+}
