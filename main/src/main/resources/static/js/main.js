@@ -87,7 +87,6 @@ async function router(path) {
     } catch (err) {
         showToast('HTML 렌더링 오류', 'error');
     }
-
 }
 
 // 자바호출
@@ -112,10 +111,34 @@ async function callService(path, reqData) {
         }
 
         return await response.text();
-
     } catch (error) {
         console.error('Error:', error);
     }
+}
+
+function setIconHtml(app) {
+    let html = '';
+    if(app.id === "users") {
+        html = `
+            <div class="app-item" id="btnOpenUsers">
+                <div class="app-icon ${app.color}">
+                    <i class="fas ${app.icon}"></i>
+                    <div class="app-badge">DB</div>
+                </div>
+                <div class="app-name" title="${app.name}">${app.name}</div>
+            </div>
+        `;
+    } else {
+        html = `
+            <div class="app-item" id="btnOpenSearch">
+                <div class="app-icon ${app.color}">
+                    <i class="fas ${app.icon}"></i>
+                </div>
+                <div class="app-name" title="${app.name}">${app.name}</div>
+            </div>
+        `;
+    }
+    return html;
 }
 
 // 앱 아이콘 EVENT 매핑
@@ -130,59 +153,11 @@ const renderAppGrid = async () => {
     // DB 호출
     const data = await callService('/apps');
     let apps = data ? JSON.parse(data) : [];
-    console.info("APP 목록 = ", apps);
 
     apps.forEach(app => {
         let html = '';
-        if (app.id === "file") {
-            html = `
-                <div class="app-item" id="btnOpenSearch">
-                    <div class="app-icon ${app.color}">
-                        <i class="fas ${app.icon}"></i>
-                    </div>
-                    <div class="app-name" title="${app.name}">${app.name}</div>
-                </div>
-            `;
-        }
-        else if (app.id === "users") {
-            html = `
-                <div class="app-item" id="btnOpenUsers">
-                    <div class="app-icon ${app.color}">
-                        <i class="fas ${app.icon}"></i>
-                        <div class="app-badge">DB</div>
-                    </div>
-                    <div class="app-name" title="${app.name}">${app.name}</div>
-                </div>
-            `;
-        }
-        else if (app.id === "link") {
-            html = `
-                <div class="app-item" id="btnOpenLink">
-                    <div class="app-icon ${app.color}">
-                        <i class="fas ${app.icon}"></i>
-                    </div>
-                    <div class="app-name" title="${app.name}">${app.name}</div>
-                </div>
-            `;
-        } else if (app.id === "settings") {
-            html = `
-                <div class="app-item" id="btnOpenSettings">
-                    <div class="app-icon ${app.color}">
-                        <i class="fas ${app.icon}"></i>
-                    </div>
-                    <div class="app-name" title="${app.name}">${app.name}</div>
-                </div>
-            `;
-        } else {
-            html = `
-                <div class="app-item">
-                    <div class="app-icon ${app.color}">
-                        <i class="fas ${app.icon}"></i>
-                    </div>
-                    <div class="app-name" title="${app.name}">${app.name}</div>
-                </div>
-            `;
-        }
+        if(!app.id) return; // id 없는 경우 건너뛰기
+        html = setIconHtml(app);
 
         appContainer.insertAdjacentHTML('beforeend', html);
     });
@@ -238,7 +213,6 @@ const renderAppGrid = async () => {
 
             // DB 호출
             const data = await callService('/users');
-            console.info("사용자 목록 = ", data);
             
             let users = data ? JSON.parse(data) : [];
             let count = 0;
@@ -384,7 +358,6 @@ const renderAppGrid = async () => {
 
 // 검색
 const performSearch = async () => {
-    console.info("검색클릭");
     const query = searchInput.value.trim();
     const searchTypeEl = document.getElementById('searchType');
     const searchType = searchTypeEl ? searchTypeEl.value : 'name';
