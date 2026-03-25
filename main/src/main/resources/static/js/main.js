@@ -36,42 +36,6 @@ function getIconByName(filename) {
     return map[ext] || 'fa-file';
 }
 
-// 팝업 호출
-// * @param {string} url - 불러올 HTML 파일 경로 (예: '/users/list.html')
-// * @param {string} title - 모달 상단 제목
-async function openDynamicModal(url, title) {
-    try {
-        modal.style.display = 'flex';
-        // 1. 제목 설정
-        document.getElementById('modalTitle').innerText = title;
-        
-        // 2. 모달 먼저 열기 (로딩 표시)
-        contentArea.innerHTML = '<div class="loader">로딩 중...</div>';
-        modal.showModal();
-
-        // 3. HTML 파일 가져오기
-        const response = await fetch(url);
-        
-        if (!response.ok) {
-            throw new Error('파일을 불러오는데 실패했습니다.');
-        }
-
-        const html = await response.text();
-        
-        // 4. 받아온 HTML 삽입
-        contentArea.innerHTML = html;
-
-    } catch (error) {
-        contentArea.innerHTML = `<p style="color:red;">오류: ${error.message}</p>`;
-    }
-}
-
-// 팝업 닫기
-function closeModal() {
-    modal.close();
-    modal.style.display = 'none';
-}
-
 // ─────────────────────────────────────────
 // 01. 공통, 메인
 // ─────────────────────────────────────────
@@ -86,6 +50,12 @@ if (backBtn) {
     backBtn.addEventListener('click', () => {
         renderAppGrid();
     });
+}
+
+// 화면 이동
+function moveScreen(path) {
+    console.info("화면 이동: ", path);
+    location.href = path;
 }
 
 // Toast 메시지
@@ -118,6 +88,43 @@ async function router(path) {
     } catch (err) {
         showToast('HTML 렌더링 오류', 'error');
     }
+}
+
+
+// 팝업 호출
+// @param {string} url - 불러올 HTML 파일 경로 (예: '/users/list.html')
+// @param {string} title - 모달 상단 제목
+async function openDynamicModal(url, title) {
+    try {
+        modal.style.display = 'flex';
+        // 1. 제목 설정
+        document.getElementById('modalTitle').innerText = title;
+        
+        // 2. 모달 먼저 열기 (로딩 표시)
+        contentArea.innerHTML = '<div class="loader">로딩 중...</div>';
+        modal.showModal();
+
+        // 3. HTML 파일 가져오기
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error('파일을 불러오는데 실패했습니다.');
+        }
+
+        const html = await response.text();
+        
+        // 4. 받아온 HTML 삽입
+        contentArea.innerHTML = html;
+
+    } catch (error) {
+        contentArea.innerHTML = `<p style="color:red;">오류: ${error.message}</p>`;
+    }
+}
+
+// 팝업 닫기
+function closeModal() {
+    modal.close();
+    modal.style.display = 'none';
 }
 
 // 자바호출
@@ -161,6 +168,26 @@ function setIconHtml(app) {
                 <div class="app-name" title="${app.name}">${app.name}</div>
             </div>
         `;
+    } else if(app.id === "Info") {
+        html = `
+            <div class="app-item" id="${btnId}">
+                <div class="app-icon ${app.color}">
+                    <i class="fas ${app.icon}"></i>
+                    <div class="app-badge">Pop</div>
+                </div>
+                <div class="app-name" title="${app.name}">${app.name}</div>
+            </div>
+        `;
+    } else if(app.id === "Board") {
+        html = `
+            <div class="app-item" id="${btnId}">
+                <div class="app-icon ${app.color}">
+                    <i class="fas ${app.icon}"></i>
+                    <div class="app-badge">Web</div>
+                </div>
+                <div class="app-name" title="${app.name}">${app.name}</div>
+            </div>
+        `;
     } else {
         html = `
             <div class="app-item" id="${btnId}">
@@ -194,6 +221,7 @@ const renderAppGrid = async () => {
 
         appContainer.insertAdjacentHTML('beforeend', html);
     });
+    
     // [파일찾기]
     const btnOpenSearchFile = document.getElementById('btnOpenSearchFile');
     if (btnOpenSearchFile) {
@@ -283,6 +311,13 @@ const renderAppGrid = async () => {
                 const thirdBottom = thirdItem.getBoundingClientRect().bottom - resultsContainer.getBoundingClientRect().top + resultsContainer.scrollTop;
                 resultsContainer.style.maxHeight = thirdBottom + 'px';
             }
+        });
+    }
+    // [게시판]
+    const btnOpenBoard = document.getElementById('btnOpenBoard');
+    if (btnOpenBoard) {
+        btnOpenBoard.addEventListener('click', () => {
+            moveScreen('/board');
         });
     }
     // [Link]
