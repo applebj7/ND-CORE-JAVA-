@@ -14,7 +14,21 @@
     <div class="orb orb-2"></div>
 
     <div class="container" id="mainContainer">
+        <!-- Toast -->
         <div id="toast" class="toast"></div>
+        <!-- Modal -->
+        <dialog id="dynamicModal" class="modal-box" style="display: none;">
+            <div class="modal-header">
+                <h3 id="modalTitle">화면 로드</h3>
+            </div>
+            <div id="modalContent" class="modal-body">
+                <p>데이터를 불러오는 중입니다...</p>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeModal()" class="btn-close-footer">닫기</button>
+            </div>
+        </dialog>
+
         <div class="header">
             <div class="logo-container">
                 <img src="/images/logo.png" alt="ND-CORE Logo" class="logo-img">
@@ -25,9 +39,9 @@
             </div>
         </div>
 
-        <!-- 기능 html 랜더영역 -->
+        <!-- 개별 html 랜더영역 -->
         <div id="viewContainer">
-            <!-- Module html area -->
+            <!-- Module html rendered this area -->
         </div>
         <!-- App Area -->
         <div class="app-container" id="appContainer"></div>
@@ -37,7 +51,6 @@
                 <i class="fas fa-arrow-left"></i> Back
             </button>
         </div>
-
     </div>
 
     <footer>

@@ -1,8 +1,17 @@
+// ─────────────────────────────────────────
+// 00. 설정, 전역변수
+// ─────────────────────────────────────────
+
 // DOM 참조
+// Apps
 const appContainer = document.getElementById('appContainer');
 const mainContainer = document.getElementById('mainContainer');
+// btn Back
 const backBtnContainer = document.getElementById('backBtnContainer');
 const backBtn = document.getElementById('backBtn');
+// Modal
+const modal = document.getElementById('dynamicModal');
+const contentArea = document.getElementById('modalContent');
 
 // 아이콘 색상 유틸
 function getIconByName(filename) {
@@ -27,19 +36,41 @@ function getIconByName(filename) {
     return map[ext] || 'fa-file';
 }
 
-// 앱 아이콘(홈 화면)
-// const APP_LIST = [
-//     { id: "file", name: "파일찾기", icon: "fa-search", color: "blue" },
-//     { id: "users", name: "사용자 목록", icon: "fa-solid fa-user", color: "green" },
-//     { id: "test2", name: "테스트 2", icon: "fa-vial", color: "orange" },
-//     { id: "test3", name: "테스트 3", icon: "fa-vial", color: "purple" },
-//     { id: "test4", name: "테스트 4", icon: "fa-vial", color: "red" },
-//     { id: "test5", name: "테스트 5", icon: "fa-vial", color: "yellow" },
-//     { id: "test6", name: "테스트 6", icon: "fa-vial", color: "blue" },
-//     { id: "link", name: "Link", icon: "fa-link", color: "gray" },
-//     { id: "settings", name: "Settings", icon: "fa-cog", color: "gray" },
-//     { id: "info", name: "Info", icon: "fa-info-circle", color: "blue" },
-// ];
+// 팝업 호출
+// * @param {string} url - 불러올 HTML 파일 경로 (예: '/users/list.html')
+// * @param {string} title - 모달 상단 제목
+async function openDynamicModal(url, title) {
+    try {
+        modal.style.display = 'flex';
+        // 1. 제목 설정
+        document.getElementById('modalTitle').innerText = title;
+        
+        // 2. 모달 먼저 열기 (로딩 표시)
+        contentArea.innerHTML = '<div class="loader">로딩 중...</div>';
+        modal.showModal();
+
+        // 3. HTML 파일 가져오기
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error('파일을 불러오는데 실패했습니다.');
+        }
+
+        const html = await response.text();
+        
+        // 4. 받아온 HTML 삽입
+        contentArea.innerHTML = html;
+
+    } catch (error) {
+        contentArea.innerHTML = `<p style="color:red;">오류: ${error.message}</p>`;
+    }
+}
+
+// 팝업 닫기
+function closeModal() {
+    modal.close();
+    modal.style.display = 'none';
+}
 
 // ─────────────────────────────────────────
 // 01. 공통, 메인
@@ -118,9 +149,11 @@ async function callService(path, reqData) {
 
 function setIconHtml(app) {
     let html = '';
-    if(app.id === "users") {
+    let btnId = 'btnOpen' + app.id;
+
+    if(app.id === "Users") {
         html = `
-            <div class="app-item" id="btnOpenUsers">
+            <div class="app-item" id="${btnId}">
                 <div class="app-icon ${app.color}">
                     <i class="fas ${app.icon}"></i>
                     <div class="app-badge">DB</div>
@@ -130,7 +163,7 @@ function setIconHtml(app) {
         `;
     } else {
         html = `
-            <div class="app-item" id="btnOpenSearch">
+            <div class="app-item" id="${btnId}">
                 <div class="app-icon ${app.color}">
                     <i class="fas ${app.icon}"></i>
                 </div>
@@ -162,10 +195,11 @@ const renderAppGrid = async () => {
         appContainer.insertAdjacentHTML('beforeend', html);
     });
     // [파일찾기]
-    const btnOpenSearch = document.getElementById('btnOpenSearch');
-    if (btnOpenSearch) {
-        btnOpenSearch.addEventListener('click', async () => {
+    const btnOpenSearchFile = document.getElementById('btnOpenSearchFile');
+    if (btnOpenSearchFile) {
+        btnOpenSearchFile.addEventListener('click', async () => {
             await router('/html/fileSearch.html'); // html render
+
             let searchInput = document.getElementById('searchInput');
             let searchBtn = document.getElementById('searchBtn');
             let searchIcon = document.getElementById('searchIcon');
@@ -229,8 +263,8 @@ const renderAppGrid = async () => {
                 count++;
             });
 
-            // 사용자 수 업데이트
-            document.getElementById('userCount').textContent = count;
+            // 사용자 수
+            document.getElementById('count').textContent = count;
 
             // 정확히 3개 아이템 높이 기준으로 maxHeight 동적 적용
             let items = resultsContainer.querySelectorAll('.result-item');
@@ -319,9 +353,16 @@ const renderAppGrid = async () => {
             resultsContainer.innerHTML = '';
             resultsContainer.classList.add('active');
             resultsContainer.classList.add('list-view');
+
+            let count = 0;
+
             links.forEach(link => {
                 resultsContainer.insertAdjacentHTML('beforeend', renderLinkResult(link));
+                count++;
             });
+
+            // 링크 수
+            document.getElementById('count').textContent = count;
 
             // 정확히 3개 아이템 높이 기준으로 maxHeight 동적 적용
             let items = resultsContainer.querySelectorAll('.result-item');
@@ -349,7 +390,13 @@ const renderAppGrid = async () => {
             alert('Settings');
         });
     }
-
+    // [Info]
+    const btnOpenInfo = document.getElementById('btnOpenInfo');
+    if (btnOpenInfo) {
+        btnOpenInfo.addEventListener('click', async () => {
+            openDynamicModal('/html/popup/info.html', 'Info'); // 팝업 렌더링
+        });
+    }
 }
 
 // ─────────────────────────────────────────

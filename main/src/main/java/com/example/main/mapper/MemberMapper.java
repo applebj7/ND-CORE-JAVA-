@@ -1,5 +1,12 @@
 package com.example.main.mapper;
 
-public class MemberMapper {
-    
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+
+import com.example.main.dto.MemberDTO;
+
+@Mapper
+public interface MemberMapper {
+    List<MemberDTO> getMembers();
 }

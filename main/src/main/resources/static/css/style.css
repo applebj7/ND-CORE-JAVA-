@@ -800,3 +800,70 @@ footer {
     /* 만약 여전히 살짝 가려진다면 아래 수치를 조절하세요 */
     transform: translate(25%, -25%);
 }
+
+.modal-box {
+    /* 1. 고정 크기 설정 */
+    width: 600px;  /* 너비 고정 */
+    height: 500px; /* 높이 고정 */
+    padding: 0;
+    border: none;
+    border-radius: 12px;
+    background-color: #1a1c24; /* 어두운 배경 */
+    color: white;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    
+    /* 2. 중앙 배치 */
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    
+    /* 3. 내부 레이아웃 (세로 정렬) */
+    display: flex;
+    flex-direction: column;
+}
+
+/* 헤더 스타일 */
+.modal-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #333;
+}
+.modal-header h3 { margin: 0; font-size: 18px; }
+
+/* 본문 스타일 (내용이 길면 스크롤 생성) */
+.modal-body {
+    flex: 1; /* 남은 공간 모두 차지 */
+    padding: 20px;
+    overflow-y: auto; /* 세로 스크롤 활성화 */
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* 푸터 스타일 (오른쪽 정렬) */
+.modal-footer {
+    padding: 12px 20px;
+    border-top: 1px solid #333;
+    display: flex;
+    justify-content: flex-end; /* 버튼을 오른쪽 끝으로 */
+}
+
+/* 닫기 버튼 스타일 */
+.btn-close-footer {
+    background-color: #444;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+
+.btn-close-footer:hover {
+    background-color: #555;
+}
+
+/* 뒷배경 */
+.modal-box::backdrop {
+    background: rgba(0, 0, 0, 0.7);
+}

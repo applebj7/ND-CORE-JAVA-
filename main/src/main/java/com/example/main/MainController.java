@@ -13,25 +13,25 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.example.main.dto.MemberDTO;
 import com.example.main.mapper.AppMapper;
+import com.example.main.mapper.MemberMapper;
 import com.example.main.dto.AppDTO;
 
 
 @Controller
 public class MainController {
 
+    // MyBatis Mapper 주입
     private final AppMapper appMapper;
+    private final MemberMapper memberMapper;
     
-    public MainController(AppMapper appMapper) {
+    public MainController(AppMapper appMapper, MemberMapper memberMapper) {
         this.appMapper = appMapper;
+        this.memberMapper = memberMapper;
     }
-
-
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
 
     @GetMapping("/")
     public String test(Model model) {
-        return "hello"; // views/hello.jsp 를 호출
+        return "index"; // views/index.jsp 를 호출
     }
 
     @PostMapping("/users")
@@ -40,9 +40,8 @@ public class MainController {
         System.out.println("**************************");
         System.out.println("/users");
         System.out.println("**************************");
-        String sql = "SELECT ID, NAME, EMAIL, CREATE_DATE FROM TB_MEMBER ORDER BY CREATE_DATE ASC";
 
-        List<MemberDTO> members = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(MemberDTO.class));
+        List<MemberDTO> members = memberMapper.getMembers();
         
         return members;
     }
@@ -53,7 +52,6 @@ public class MainController {
         System.out.println("**************************");
         System.out.println("/apps");
         System.out.println("**************************");
-        //String sql = "SELECT ID, NAME, ICON, COLOR, CREATE_DATE FROM TB_APP ORDER BY IDX ASC";
 
         List<AppDTO> apps = appMapper.getApps();
         

@@ -3,12 +3,12 @@
 
 <mapper namespace="com.example.main.mapper.AppMapper">
     <select id="getApps" resultType="com.example.main.dto.AppDTO">
-        SELECT  ID, 
-                NAME, 
-                ICON, 
-                COLOR, 
-                CREATE_DATE 
-         FROM   TB_APP 
+        SELECT ID 
+               , NAME 
+               , ICON 
+               , COLOR
+               , CREATE_DATE 
+         FROM TB_APP 
         ORDER BY IDX ASC
     </select>
 </mapper>
