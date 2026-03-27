@@ -5,6 +5,7 @@ public class AppDTO {
     String name;
     String icon;
     String color;
+    int idx;
     String createDate;
 
     public String getId() {
@@ -38,6 +39,13 @@ public class AppDTO {
     public void setColor(String color) {
         this.color = color;
     }
+    public int getIdx() {
+        return idx;
+    }
+    
+    public void setIdx(int idx) {
+        this.idx = idx;
+    }
 
     public String getCreateDate() {
         return createDate;
@@ -46,5 +54,4 @@ public class AppDTO {
     public void setCreateDate(String createDate) {
         this.createDate = createDate;
     }
-
 }

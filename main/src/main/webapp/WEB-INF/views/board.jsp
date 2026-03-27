@@ -11,9 +11,9 @@
 
     <header class="main-header">
         
-        <div class="logo" onclick="goHome()">
+        <div class="logo">
             <img src="/images/logo.png" alt="ND-CORE Logo" class="logo-img">
-            <spn>ND-CORE(BOARD)</spn>
+            <span  onclick="goHome()">ND-CORE(BOARD)</span>
             <!-- Back -->
             <div class="back-btn-container" id="backBtnContainer">
                 <button id="backBtn" class="back-btn">

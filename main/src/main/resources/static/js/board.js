@@ -83,7 +83,8 @@ async function callService(path, params) {
 
         return await response.text();
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Service Call Error:', error);
+        throw error; // 에러를 다시 던져서 호출한 곳에서 처리하게 함
     }
 }
 

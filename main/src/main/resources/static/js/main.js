@@ -9,6 +9,7 @@ const mainContainer = document.getElementById('mainContainer');
 // btn Back
 const backBtnContainer = document.getElementById('backBtnContainer');
 const backBtn = document.getElementById('backBtn');
+const settingsBtnContainer = document.getElementById('settingsBtnContainer');
 // Modal
 const modal = document.getElementById('dynamicModal');
 const contentArea = document.getElementById('modalContent');
@@ -150,53 +151,36 @@ async function callService(path, reqData) {
         return await response.text();
     } catch (error) {
         console.error('Error:', error);
+        throw error; // 에러를 던져야 catch 블록이 작동함
     }
 }
 
 function setIconHtml(app) {
     let html = '';
     let btnId = 'btnOpen' + app.id;
+    const checkbox = `<input type="checkbox" class="app-checkbox" data-id="${app.id}">`;
+    let badge = '';
 
     if(app.id === "Users") {
-        html = `
-            <div class="app-item" id="${btnId}">
-                <div class="app-icon ${app.color}">
-                    <i class="fas ${app.icon}"></i>
-                    <div class="app-badge">DB</div>
-                </div>
-                <div class="app-name" title="${app.name}">${app.name}</div>
-            </div>
-        `;
+        badge = `<div class="app-badge">DB</div>`;
     } else if(app.id === "Info") {
-        html = `
-            <div class="app-item" id="${btnId}">
-                <div class="app-icon ${app.color}">
-                    <i class="fas ${app.icon}"></i>
-                    <div class="app-badge">Pop</div>
-                </div>
-                <div class="app-name" title="${app.name}">${app.name}</div>
-            </div>
-        `;
+        badge = `<div class="app-badge">Pop</div>`;
     } else if(app.id === "Board") {
-        html = `
-            <div class="app-item" id="${btnId}">
-                <div class="app-icon ${app.color}">
-                    <i class="fas ${app.icon}"></i>
-                    <div class="app-badge">Web</div>
-                </div>
-                <div class="app-name" title="${app.name}">${app.name}</div>
-            </div>
-        `;
-    } else {
-        html = `
-            <div class="app-item" id="${btnId}">
-                <div class="app-icon ${app.color}">
-                    <i class="fas ${app.icon}"></i>
-                </div>
-                <div class="app-name" title="${app.name}">${app.name}</div>
-            </div>
-        `;
+        badge = `<div class="app-badge">Web</div>`;
+    } else if(app.id === "Ollama") {
+        badge = `<div class="app-badge">Chat</div>`;
     }
+
+    html = `
+        <div class="app-item">
+            ${checkbox}
+            <div class="app-icon ${app.color}" id="${btnId}">
+                <i class="fas ${app.icon}"></i>
+                ${badge}
+            </div>
+            <div class="app-name" title="${app.name}">${app.name}</div>
+        </div>
+    `;
     return html;
 }
 
@@ -209,17 +193,36 @@ const renderAppGrid = async () => {
     appContainer.innerHTML = '';
     appContainer.classList.add('active');
 
+    ensureSettingsToolbar();
+    const isSettings = appContainer.classList.contains('settings-mode');
+    toggleSettingsMode(isSettings);
+
     // DB 호출
     const data = await callService('/apps');
     let apps = data ? JSON.parse(data) : [];
+    let renderedCount = 0;
 
     apps.forEach(app => {
-        let html = '';
-        if(!app.id) return; // id 없는 경우 건너뛰기
-        html = setIconHtml(app);
-
-        appContainer.insertAdjacentHTML('beforeend', html);
+        if (app.id) {
+            appContainer.insertAdjacentHTML('beforeend', setIconHtml(app));
+            renderedCount++;
+        }
     });
+
+    // 앱 아이콘이 10개 미만인 경우 빈 슬롯(+) 추가
+    for (let i = renderedCount; i < 10; i++) {
+        const emptyHtml = `
+            <div class="app-item empty-slot" style="opacity: 0.6; cursor: default;">
+                <div class="app-icon" style="border: 2px dashed var(--glass-border); background: transparent; box-shadow: none;">
+                    <i class="fas fa-plus" style="color: var(--text-muted);"></i>
+                </div>
+            </div>
+        `;
+        appContainer.insertAdjacentHTML('beforeend', emptyHtml);
+    }
+    
+    // 드래그 앤 드롭 이벤트 바인딩
+    initAppDragEvents();
     
     // [파일찾기]
     const btnOpenSearchFile = document.getElementById('btnOpenSearchFile');
@@ -293,23 +296,13 @@ const renderAppGrid = async () => {
             // 사용자 수
             document.getElementById('count').textContent = count;
 
-            // 정확히 3개 아이템 높이 기준으로 maxHeight 동적 적용
-            let items = resultsContainer.querySelectorAll('.result-item');
-            if (items.length > 3) {
-                // 결과 클릭 → 파일 탐색기에서 열기
-                items.forEach(el => {
-                    el.addEventListener('click', () => {
-                        const path = el.dataset.path;
-                        if (path) openInNewWindow(path);
-                    });
+            // 결과 클릭 → 새 창에서 열기
+            resultsContainer.querySelectorAll('.result-item').forEach(el => {
+                el.addEventListener('click', () => {
+                    const path = el.dataset.path;
+                    if (path) openInNewWindow(path);
                 });
-
-                // 3번째 아이템의 하단 위치 = 컨테이너 상단 기준 offsetTop + offsetHeight
-                const containerTop = resultsContainer.getBoundingClientRect().top + resultsContainer.scrollTop;
-                const thirdItem = items[2];
-                const thirdBottom = thirdItem.getBoundingClientRect().bottom - resultsContainer.getBoundingClientRect().top + resultsContainer.scrollTop;
-                resultsContainer.style.maxHeight = thirdBottom + 'px';
-            }
+            });
         });
     }
     // [게시판]
@@ -398,30 +391,21 @@ const renderAppGrid = async () => {
             // 링크 수
             document.getElementById('count').textContent = count;
 
-            // 정확히 3개 아이템 높이 기준으로 maxHeight 동적 적용
-            let items = resultsContainer.querySelectorAll('.result-item');
-            if (items.length > 3) {
-                // 결과 클릭 → 파일 탐색기에서 열기
-                items.forEach(el => {
-                    el.addEventListener('click', () => {
-                        const path = el.dataset.path;
-                        if (path) openInNewWindow(path);
-                    });
+            // 결과 클릭 → 새 창에서 열기
+            resultsContainer.querySelectorAll('.result-item').forEach(el => {
+                el.addEventListener('click', () => {
+                    const path = el.dataset.path;
+                    if (path) openInNewWindow(path);
                 });
-
-                // 3번째 아이템의 하단 위치 = 컨테이너 상단 기준 offsetTop + offsetHeight
-                const containerTop = resultsContainer.getBoundingClientRect().top + resultsContainer.scrollTop;
-                const thirdItem = items[2];
-                const thirdBottom = thirdItem.getBoundingClientRect().bottom - resultsContainer.getBoundingClientRect().top + resultsContainer.scrollTop;
-                resultsContainer.style.maxHeight = thirdBottom + 'px';
-            }
+            });
         });
     }
     // [Settings]
     const btnOpenSettings = document.getElementById('btnOpenSettings');
     if (btnOpenSettings) {
         btnOpenSettings.addEventListener('click', () => {
-            alert('Settings');
+            const isMode = appContainer.classList.contains('settings-mode');
+            toggleSettingsMode(!isMode);
         });
     }
     // [Info]
@@ -429,6 +413,22 @@ const renderAppGrid = async () => {
     if (btnOpenInfo) {
         btnOpenInfo.addEventListener('click', async () => {
             openDynamicModal('/html/popup/info.html', 'Info'); // 팝업 렌더링
+        });
+    }
+    // [Ollama Chat]
+    const btnOpenOllama = document.getElementById('btnOpenOllama');
+    if (btnOpenOllama) {
+        btnOpenOllama.addEventListener('click', async () => {
+            await router('/html/ollamaChat.html'); // 채팅 UI 렌더링
+
+            // UI 상태 전환 (그리드 숨기고 뒤로가기 활성화)
+            backBtnContainer.classList.add('active');
+            appContainer.innerHTML = '';
+            appContainer.classList.remove('active');
+            appContainer.classList.remove('grid-view');
+
+            // 채팅 서비스 초기화
+            initOllamaChat();
         });
     }
 }
@@ -439,10 +439,17 @@ const renderAppGrid = async () => {
 
 // 검색
 const performSearch = async () => {
+    const searchInput = document.getElementById('searchInput');
+    const searchIcon = document.getElementById('searchIcon');
+    const searchSpinner = document.getElementById('searchSpinner');
+    const searchBtn = document.getElementById('searchBtn');
+    const resultsContainer = document.getElementById('resultsContainer');
+
+    if (!searchInput) return;
+    
     const query = searchInput.value.trim();
     const searchTypeEl = document.getElementById('searchType');
     const searchType = searchTypeEl ? searchTypeEl.value : 'name';
-    const resultsContainer = document.getElementById('resultsContainer');
 
     // 검색어 없으면 → toast 메시지
     if (!query) {
@@ -458,20 +465,17 @@ const performSearch = async () => {
     resultsContainer.classList.remove('grid-view');
     resultsContainer.classList.add('list-view');
     resultsContainer.classList.add('active');
-    resultsContainer.style.maxHeight = 'none';  // 렌더링 전에는 풍어됩니다
     resultsContainer.style.overflowY = 'auto';
 
     try {
-        // app.py → search 호출
-        const response = await fetch(`${API_BASE}/search`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ query: query.toLowerCase(), searchType: searchType })
+        // 자바 컨트롤러(/search) 호출
+        const responseText = await callService('/search', { 
+            query: query.toLowerCase(), 
+            searchType: searchType 
         });
 
-        if (!response.ok) throw new Error(`서버 오류: ${response.status}`);
-
-        const data = await response.json();
+        if (!responseText) throw new Error("서버로부터 응답이 없습니다.");
+        const data = JSON.parse(responseText);
 
         // 로딩 복구
         searchIcon.style.display = 'block';
@@ -502,16 +506,6 @@ const performSearch = async () => {
                     if (path) openInExplorer(path);
                 });
             });
-
-            // 정확히 3개 아이템 높이 기준으로 maxHeight 동적 적용
-            const items = resultsContainer.querySelectorAll('.result-item');
-            if (items.length > 3) {
-                // 3번째 아이템의 하단 위치 = 컨테이너 상단 기준 offsetTop + offsetHeight
-                const containerTop = resultsContainer.getBoundingClientRect().top + resultsContainer.scrollTop;
-                const thirdItem = items[2];
-                const thirdBottom = thirdItem.getBoundingClientRect().bottom - resultsContainer.getBoundingClientRect().top + resultsContainer.scrollTop;
-                resultsContainer.style.maxHeight = thirdBottom + 'px';
-            }
         }
 
     } catch (err) {
@@ -521,9 +515,9 @@ const performSearch = async () => {
         resultsContainer.innerHTML = `
             <div class="no-results">
                 <i class="fas fa-exclamation-triangle" style="font-size:2rem;margin-bottom:1rem;color:#ef4444;"></i>
-                <h3>백엔드 연결 오류</h3>
+                <h3>검색 중 오류 발생</h3>
                 <p style="margin-top:0.5rem;font-size:0.9rem;">${err.message}</p>
-                <p style="margin-top:0.3rem;font-size:0.85rem;color:#64748b;">Flask 서버(http://127.0.0.1:5000)가 실행 중인지 확인하세요.</p>
+                <p style="margin-top:0.3rem;font-size:0.85rem;color:#64748b;">서버 로그를 확인해 주세요.</p>
             </div>
         `;
     }
@@ -671,5 +665,228 @@ async function openInNewWindow(path) {
         window.open(path, '_blank');
     } catch (e) {
         showToast('링크를 여는 중 문제가 발생했습니다.', 'error');
+    }
+}
+
+// ─────────────────────────────────────────
+// 05. Ollama Chat
+// ─────────────────────────────────────────
+
+/**
+ * Ollama 채팅 인터페이스 초기화 및 메시지 전송 로직
+ */
+function initOllamaChat() {
+    const chatInput = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const chatResults = document.getElementById('chatResults');
+
+    if (!chatInput || !sendBtn || !chatResults) return;
+
+    chatInput.focus();
+
+    const sendMessage = async () => {
+        const message = chatInput.value.trim();
+        if (!message) return;
+
+        // 사용자 메시지 화면에 추가
+        appendChatMessage('user', message);
+        chatInput.value = '';
+
+        // 응답 대기용 임시 메시지 생성 (ID 부여)
+        const botMsgId = 'bot-' + Date.now();
+        appendChatMessage('bot', 'AI가 답변을 생성 중입니다...', botMsgId);
+
+        try {
+            // 백엔드 엔드포인트(/ollama/chat) 호출 
+            // (해당 엔드포인트에서 ollama_chat.py를 실행하도록 구성되어야 합니다)
+            const response = await callService('/ollama/chat', { prompt: message });
+            let replyText = "";
+            
+            try {
+                const data = JSON.parse(response);
+                replyText = data.reply || data.response || response;
+            } catch (e) {
+                replyText = response;
+            }
+
+            document.getElementById(botMsgId).innerText = replyText;
+        } catch (error) {
+            document.getElementById(botMsgId).innerText = "오류 발생: " + error.message;
+        }
+    };
+
+    sendBtn.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+    });
+}
+
+function appendChatMessage(sender, text, id) {
+    const chatResults = document.getElementById('chatResults');
+    if (!chatResults) return;
+    
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `chat-message ${sender}`;
+    if (id) msgDiv.id = id;
+    msgDiv.innerText = text;
+    
+    chatResults.appendChild(msgDiv);
+    chatResults.scrollTop = chatResults.scrollHeight;
+}
+
+// ─────────────────────────────────────────
+// 06. 설정 모드 유틸리티
+// ─────────────────────────────────────────
+
+function ensureSettingsToolbar() {
+    const btnSaveApps = document.getElementById('btnSaveApps');
+    const btnDeleteApps = document.getElementById('btnDeleteApps');
+
+    if (btnSaveApps && !btnSaveApps.getAttribute('data-event')) {
+        btnSaveApps.addEventListener('click', saveApps);
+        btnSaveApps.setAttribute('data-event', 'true');
+    }
+    if (btnDeleteApps && !btnDeleteApps.getAttribute('data-event')) {
+        btnDeleteApps.addEventListener('click', deleteSelectedApps);
+        btnDeleteApps.setAttribute('data-event', 'true');
+    }
+}
+
+function toggleSettingsMode(active) {
+    if (active) {
+        appContainer.classList.add('settings-mode');
+        if (settingsBtnContainer) settingsBtnContainer.classList.add('active');
+        document.querySelectorAll('.app-item').forEach(item => {
+            item.setAttribute('draggable', true);
+            const nameDiv = item.querySelector('.app-name');
+            if (nameDiv) nameDiv.setAttribute('contenteditable', 'true');
+        });
+    } else {
+        appContainer.classList.remove('settings-mode');
+        if (settingsBtnContainer) settingsBtnContainer.classList.remove('active');
+        document.querySelectorAll('.app-item').forEach(item => {
+            item.removeAttribute('draggable');
+            const nameDiv = item.querySelector('.app-name');
+            if (nameDiv) nameDiv.setAttribute('contenteditable', 'false');
+        });
+    }
+}
+
+// 드래그 앤 드롭 로직
+let dragSrcEl = null;
+
+function initAppDragEvents() {
+    const items = document.querySelectorAll('.app-item');
+    items.forEach(item => {
+        item.addEventListener('dragstart', handleDragStart);
+        item.addEventListener('dragover', handleDragOver);
+        item.addEventListener('dragenter', handleDragEnter);
+        item.addEventListener('dragend', handleDragEnd);
+        item.addEventListener('drop', handleDrop);
+    });
+}
+
+function handleDragStart(e) {
+    if (!appContainer.classList.contains('settings-mode')) {
+        e.preventDefault();
+        return;
+    }
+    this.classList.add('dragging');
+    dragSrcEl = this;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', this.innerHTML);
+}
+
+function handleDragOver(e) {
+    if (e.preventDefault) e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    return false;
+}
+
+function handleDragEnter(e) {
+    if (this === dragSrcEl) return;
+    
+    // 애니메이션 효과와 함께 위치 스왑
+    const children = Array.from(appContainer.children);
+    const dragIdx = children.indexOf(dragSrcEl);
+    const targetIdx = children.indexOf(this);
+
+    if (dragIdx < targetIdx) {
+        appContainer.insertBefore(dragSrcEl, this.nextSibling);
+    } else {
+        appContainer.insertBefore(dragSrcEl, this);
+    }
+}
+
+function handleDragEnd(e) {
+    this.classList.remove('dragging');
+}
+
+function handleDrop(e) {
+    if (e.stopPropagation) e.stopPropagation();
+    return false;
+}
+
+// 저장 서비스 호출
+async function saveApps() {
+    // 빈 슬롯을 제외한 실제 앱 아이템만 선택
+    const appItems = appContainer.querySelectorAll('.app-item:not(.empty-slot)');
+    
+    const appDTOs = Array.from(appItems).map((item, index) => {
+        const checkbox = item.querySelector('.app-checkbox');
+        const nameDiv = item.querySelector('.app-name');
+        const iconI = item.querySelector('.app-icon i');
+        const iconDiv = item.querySelector('.app-icon');
+        
+        // 아이콘 클래스 추출 (fa- 로 시작하는 클래스 찾기)
+        let iconClass = "";
+        if (iconI) {
+            iconClass = Array.from(iconI.classList).find(c => c.startsWith('fa-') && !['fas', 'fa-solid', 'fa-brands'].includes(c));
+        }
+        
+        // 색상 클래스 추출
+        let colorClass = "";
+        if (iconDiv) {
+            colorClass = Array.from(iconDiv.classList).find(c => ['blue', 'green', 'orange', 'red', 'purple', 'yellow', 'gray'].includes(c));
+        }
+
+        return {
+            id: checkbox ? checkbox.dataset.id : '',
+            name: nameDiv ? nameDiv.innerText.trim() : '',
+            icon: iconClass || 'fa-app-store',
+            color: colorClass || 'blue',
+            idx: index
+        };
+    }).filter(app => app.id);
+
+    try {
+        // 전체 삭제 후 삽입을 수행하는 새로운 엔드포인트 호출
+        await callService('/apps/save', appDTOs);
+        showToast('저장되었습니다.', 'success');
+        toggleSettingsMode(false);
+        renderAppGrid(); // 변경된 이름 반영을 위해 새로고침
+    } catch (e) {
+        showToast('저장 중 오류 발생', 'error');
+    }
+}
+
+// 삭제 서비스 호출
+async function deleteSelectedApps() {
+    const checkedNodes = document.querySelectorAll('.app-checkbox:checked');
+    const ids = Array.from(checkedNodes).map(cb => cb.dataset.id);
+
+    if (ids.length === 0) {
+        showToast('삭제할 앱을 선택해주세요.', 'info');
+        return;
+    }
+
+    if (confirm(`${ids.length}개의 앱을 삭제하시겠습니까?`)) {
+        try {
+            await callService('/apps/delete', ids);
+            showToast('삭제 성공', 'success');
+            renderAppGrid(); // 목록 새로고침
+        } catch (e) {
+            showToast('삭제 실패: ' + e.message, 'error');
+        }
     }
 }

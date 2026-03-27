@@ -7,8 +7,50 @@
                , NAME 
                , ICON 
                , COLOR
+               , IDX
                , CREATE_DATE 
          FROM TB_APP 
         ORDER BY IDX ASC
     </select>
+
+    <delete id="deleteAllApps">
+        DELETE FROM TB_APP
+    </delete>
+
+    <delete id="deleteApps" parameterType="java.util.List">
+        DELETE FROM TB_APP 
+        WHERE ID IN 
+        <foreach item="appId" collection="list" open="(" separator="," close=")">
+            #{appId}
+        </foreach>
+    </delete>
+
+    <update id="updateAppsIdx" parameterType="com.example.main.dto.AppDTO">
+        UPDATE TB_APP
+           SET IDX = #{idx}
+         WHERE ID = #{id}
+    </update>
+
+    <insert id="insertApps" parameterType="java.util.List">
+        INSERT ALL
+        <foreach collection="list" item="app" separator=" ">
+            INTO TB_APP (
+                ID
+                , NAME
+                , ICON
+                , COLOR
+                , CREATE_DATE
+                , IDX
+            ) VALUES (
+                #{app.id, jdbcType=VARCHAR}
+                , #{app.name, jdbcType=VARCHAR}
+                , #{app.icon, jdbcType=VARCHAR}
+                , #{app.color, jdbcType=VARCHAR}
+                , TO_CHAR(systimestamp, 'YYYYMMDDHH24MISS')
+                , #{app.idx, jdbcType=INTEGER}
+            )
+        </foreach>
+        SELECT * FROM DUAL
+    </insert>
+
 </mapper>

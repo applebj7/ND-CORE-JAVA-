@@ -44,11 +44,22 @@
             <!-- Module html rendered this area -->
         </div>
         <!-- App Area -->
-        <div class="app-container" id="appContainer"></div>
+        <div class="app-container" id="appContainer">
+            <!-- App html rendered this area -->
+        </div>
         <!-- Back -->
         <div class="back-btn-container" id="backBtnContainer">
             <button id="backBtn" class="back-btn">
                 <i class="fas fa-arrow-left"></i> Back
+            </button>
+        </div>
+        <!-- Settings Buttons -->
+        <div class="back-btn-container" id="settingsBtnContainer" style="gap: 10px;">
+            <button id="btnSaveApps" class="back-btn" style="background:#22c55e; color: white; border-color: rgba(255,255,255,0.2);">
+                <i class="fas fa-save"></i> 저장
+            </button>
+            <button id="btnDeleteApps" class="back-btn" style="background:#ef4444; color: white; border-color: rgba(255,255,255,0.2);">
+                <i class="fas fa-trash"></i> 삭제
             </button>
         </div>
     </div>

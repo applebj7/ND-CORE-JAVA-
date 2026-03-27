@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -67,6 +68,35 @@ public class MainController {
         List<AppDTO> apps = appMapper.getApps();
         
         return apps;
+    }
+
+    @PostMapping("/apps/delete")
+    @ResponseBody
+    public String deleteApps(@RequestBody List<String> appIds) {
+        System.out.println("**************************");
+        System.out.println("/apps/delete");
+        System.out.println("**************************");
+
+        appMapper.deleteApps(appIds);
+        
+        return "success";
+    }
+
+    @PostMapping("/apps/save")
+    @ResponseBody
+    @Transactional // 삭제와 삽입을 하나의 트랜잭션으로 묶음
+    public String saveAllApps(@RequestBody List<AppDTO> appDTOs) {
+        System.out.println("**************************");
+        System.out.println("/apps/save");
+        System.out.println("**************************");
+        
+        appMapper.deleteAllApps(); // 1. 전체 삭제
+        
+        if (appDTOs != null && !appDTOs.isEmpty()) {
+            appMapper.insertApps(appDTOs); // 2. 새 데이터 전체 삽입
+        }
+        
+        return "success";
     }
 
     @PostMapping("/menus")
