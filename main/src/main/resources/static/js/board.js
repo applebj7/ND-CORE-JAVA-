@@ -20,8 +20,33 @@ const categoryContainer = document.getElementById('category-list');
 // 초기 로딩
 document.addEventListener('DOMContentLoaded', () => {
     loadMenu();
-    loadCategory();
+    // loadCategory();
 });
+
+// 상단메뉴, 카테고리
+async function loadMenu() {
+    // DB 호출
+    const data = await callService('/menus', {});
+    let menuList = data ? JSON.parse(data) : [];
+
+    if (menuList.length === 0) return;
+
+    menuList.forEach(menu => {
+        let html = "";
+        if(menu.category === 'nav') { // 상단메뉴
+            html = `<li><a href="javascript:void(0);" onclick="loadPage('${menu.id}')"><i class="${menu.icon}"></i> ${menu.name}</a></li>`;
+            menuContainer.insertAdjacentHTML('beforeend', html);
+        } else { // 카테고리
+            html = `<li><a href="javascript:void(0);" onclick="loadPage('${menu.id}')"> ${menu.name} </a></li>`;
+            categoryContainer.insertAdjacentHTML('beforeend', html);
+        }
+    });
+}
+
+// Home
+function goHome() {
+    location.href = '/board';
+}
 
 // 뒤로가기 버튼
 if (backBtn) {
@@ -66,35 +91,6 @@ async function callService(path, params) {
 // 02. Navbar
 // ─────────────────────────────────────────
 
-// 상단메뉴
-async function loadMenu() {
-    // DB 호출
-    const data = await callService('/menus', {category: 'nav'});
-    let menuList = data ? JSON.parse(data) : [];
-
-    console.info('menuList = ', menuList);
-    if (menuList.length === 0) return;
-
-    menuList.forEach(menu => {
-        let html = `<li><a href="javascript:void(0);" onclick="loadPage('${menu.id}')"><i class="${menu.icon}"></i> ${menu.name}</a></li>`;
-        menuContainer.insertAdjacentHTML('beforeend', html);
-    });
-}
-
 // ─────────────────────────────────────────
 // 03. Category
 // ─────────────────────────────────────────
-
-// 카테고리
-async function loadCategory() {
-    // DB 호출
-    const data = await callService('/menus', {category: 'category'});
-    let categoryList = data ? JSON.parse(data) : [];
-
-    if (categoryList.length === 0) return;
-
-    categoryList.forEach(category => {
-        let html = `<li><a href="javascript:void(0);" onclick="loadPage('${category.id}')"> ${category.name} </a></li>`;
-        categoryContainer.insertAdjacentHTML('beforeend', html);
-    });
-}

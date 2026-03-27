@@ -11,7 +11,7 @@
 
     <header class="main-header">
         
-        <div class="logo">
+        <div class="logo" onclick="goHome()">
             <img src="/images/logo.png" alt="ND-CORE Logo" class="logo-img">
             <spn>ND-CORE(BOARD)</spn>
             <!-- Back -->

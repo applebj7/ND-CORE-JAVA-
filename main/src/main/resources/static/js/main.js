@@ -54,7 +54,6 @@ if (backBtn) {
 
 // 화면 이동
 function moveScreen(path) {
-    console.info("화면 이동: ", path);
     location.href = path;
 }
 
