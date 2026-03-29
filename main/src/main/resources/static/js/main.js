@@ -212,7 +212,7 @@ const renderAppGrid = async () => {
     // 앱 아이콘이 10개 미만인 경우 빈 슬롯(+) 추가
     for (let i = renderedCount; i < 10; i++) {
         const emptyHtml = `
-            <div class="app-item empty-slot" style="opacity: 0.6; cursor: default;">
+            <div class="app-item empty-slot" style="opacity: 0.6; cursor: default;" onclick="addApp()">
                 <div class="app-icon" style="border: 2px dashed var(--glass-border); background: transparent; box-shadow: none;">
                     <i class="fas fa-plus" style="color: var(--text-muted);"></i>
                 </div>
@@ -825,6 +825,11 @@ function handleDragEnd(e) {
 function handleDrop(e) {
     if (e.stopPropagation) e.stopPropagation();
     return false;
+}
+
+// + 버튼 클릭 → 앱 추가 모달 오픈
+function addApp() {
+    openDynamicModal('/html/popup/addApp.html', '앱 추가');
 }
 
 // 저장 서비스 호출
